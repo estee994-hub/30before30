@@ -1,0 +1,19 @@
+FINAL QUICK GUIDE
+
+1. Open index.html to test the website.
+2. Access code: CHANEL30
+3. Edit messages and lock status in card-data.js.
+
+To unlock a card:
+Change "unlocked": false to "unlocked": true.
+
+To change its content:
+Edit "title", "heading", "message", and "closing".
+
+FREE PUBLISHING:
+Upload the full unzipped folder to Netlify Drop.
+Search online for Netlify Drop, drag the folder onto the page, and it will create a public link.
+
+When you edit card-data.js later, upload the updated folder again to the same Netlify site.
+
+This remains a static website. A private live admin dashboard is not included in this quick final version.

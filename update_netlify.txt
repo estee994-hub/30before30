@@ -1,0 +1,13 @@
+HOW TO PUT THIS UPDATE ON YOUR EXISTING NETLIFY SITE
+
+1. Download and unzip the updated ZIP.
+2. Sign in to Netlify.
+3. Open the SAME site/project you already published.
+4. Click Deploys.
+5. Scroll to the manual deploy / deploy dropzone near the bottom.
+6. Drag the entire unzipped website folder into that dropzone.
+7. Wait until the new deploy says Published.
+8. Open your existing public link on your iPhone.
+9. Refresh Safari. If the old version remains, close the tab and reopen the link.
+
+Do not create a new site. Updating the existing site keeps the same URL.

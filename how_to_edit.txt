@@ -1,0 +1,56 @@
+CHANEL — 30 BEFORE 30: HOW TO EDIT THE CARDS
+
+ACCESS CODE
+The access code is currently:
+CHANEL30
+
+THE ENVELOPE
+The envelope screen now uses the complete approved picture as an actual image.
+It should no longer disappear or be cropped out.
+
+EDITING A CARD
+Open the file named:
+
+card-data.js
+
+Each card looks like this:
+
+{
+  "number": 2,
+  "unlocked": false,
+  "title": "Card 2",
+  "heading": "Your heading",
+  "message": "The message or clue underneath the scratch layer.",
+  "closing": "A final short line."
+}
+
+To unlock Card 2, change:
+
+"unlocked": false
+
+to:
+
+"unlocked": true
+
+Then add its heading, message and closing text.
+
+IMPORTANT: CURRENT STATIC VERSION
+This file-based version is useful for designing and testing the site.
+
+If you host this folder online, you can update card-data.js and upload the changed
+file to the same hosting project. The public link can stay the same after the site
+is redeployed.
+
+However, this is not yet a live admin system. You cannot currently press an unlock
+button on your phone and have her page update instantly.
+
+THE NEXT STAGE
+For remote unlocking after she already has the link, the website needs:
+
+1. A small online database.
+2. A private admin page for you.
+3. An Unlock switch for every card.
+4. Fields to edit the heading, message, image, video or link.
+5. Automatic updating on Chanel's page.
+
+That is the Supabase/live-backend stage.

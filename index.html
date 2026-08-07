@@ -1,0 +1,750 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Chanel — 30 Before 30</title>
+  <style>
+    :root{
+      --ink:#1b1516;
+      --cream:#fffaf4;
+      --rose:#c77e88;
+      --deep:#a85f69;
+      --muted:#756164;
+      --script:"Segoe Script","Apple Chancery","Bradley Hand","Brush Script MT",cursive;
+      --sans:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      --shadow:0 24px 65px rgba(42,25,29,.25);
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;font-family:var(--sans);color:var(--ink);background:#ead2c9}
+    button,input{font:inherit}
+    button{cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+    .screen{display:none;min-height:100vh;width:100%}
+    .screen.active{display:flex}
+
+    .scene-bg{
+      position:fixed;
+      inset:0;
+      background:url("scene.png") center top / cover no-repeat;
+      z-index:-3;
+    }
+    .soft-wash{
+      position:fixed;
+      inset:0;
+      background:rgba(255,250,247,.16);
+      z-index:-2;
+      pointer-events:none;
+    }
+
+    /* Access */
+    #accessScreen{align-items:center;justify-content:center;padding:24px}
+    .access-panel{
+      width:min(92vw,470px);
+      padding:30px;
+      text-align:center;
+      border-radius:28px;
+      background:rgba(255,251,247,.91);
+      border:1px solid rgba(255,255,255,.75);
+      backdrop-filter:blur(12px);
+      box-shadow:var(--shadow);
+    }
+    .kicker{font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+    .access-panel h1{font:500 clamp(2.6rem,8vw,4.4rem)/1 var(--script);margin:10px 0 14px}
+    .access-panel p{line-height:1.6}
+    .code-row{display:grid;gap:12px;margin-top:20px}
+    input{
+      width:100%;border:1px solid #d4beb7;border-radius:999px;padding:15px 18px;
+      background:#fff;color:var(--ink);outline:none;text-align:center;letter-spacing:.08em
+    }
+    input:focus{border-color:var(--rose);box-shadow:0 0 0 4px rgba(199,126,136,.15)}
+    .primary{
+      border:0;border-radius:999px;padding:14px 22px;background:var(--ink);color:#fff;font-weight:700
+    }
+    #codeMessage{min-height:22px;margin-top:9px;color:#a04b58;font-size:.9rem}
+
+    /* Envelope opening */
+    #envelopeScreen{
+      align-items:center;
+      justify-content:center;
+      padding:0;
+      background:linear-gradient(rgba(255,250,246,.12),rgba(255,250,246,.12));
+      overflow:hidden;
+    }
+    .envelope-stage{
+      position:relative;
+      width:min(100vw,1024px);
+      aspect-ratio:1024/1536;
+      margin:0 auto;
+      overflow:hidden;
+    }
+    .envelope-image{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      object-fit:contain;
+      display:block;
+      transition:transform .9s cubic-bezier(.2,.75,.25,1), opacity .5s ease;
+    }
+    .envelope-hotspot{
+      position:absolute;
+      left:22.5%;
+      top:38%;
+      width:55%;
+      height:36%;
+      border:0;
+      border-radius:12px;
+      background:transparent;
+      z-index:6;
+    }
+    .envelope-hotspot:hover,
+    .envelope-hotspot:focus-visible{
+      outline:none;
+      box-shadow:0 0 0 4px rgba(255,255,255,.72),0 0 0 8px rgba(199,126,136,.35);
+    }
+    .envelope-hint{
+      position:absolute;
+      left:50%;
+      top:77%;
+      transform:translateX(-50%);
+      white-space:nowrap;
+      padding:8px 15px;
+      border-radius:999px;
+      background:rgba(255,250,246,.84);
+      color:#5f4b4e;
+      backdrop-filter:blur(7px);
+      box-shadow:0 7px 18px rgba(60,37,40,.1);
+      font-size:clamp(.72rem,1.6vw,.95rem);
+      pointer-events:none;
+      z-index:7;
+      transition:opacity .25s ease;
+    }
+    .seal-crack{
+      position:absolute;
+      left:50%;
+      top:52.3%;
+      transform:translate(-50%,-50%);
+      z-index:8;
+      color:#6f342f;
+      font:700 clamp(34px,6vw,66px) Arial;
+      opacity:0;
+      pointer-events:none;
+      text-shadow:0 2px 3px rgba(255,255,255,.35);
+    }
+    .paper-slip{
+      position:absolute;
+      left:29%;
+      top:49%;
+      width:42%;
+      height:22%;
+      border-radius:8px 8px 3px 3px;
+      background:
+        linear-gradient(rgba(255,255,255,.36),rgba(255,255,255,.36)),
+        repeating-linear-gradient(0deg,#fffaf3 0,#fffaf3 29px,#eaded5 30px);
+      box-shadow:0 12px 28px rgba(45,28,31,.2);
+      z-index:4;
+      opacity:0;
+      transform:translateY(80px) scale(.92);
+      pointer-events:none;
+    }
+    .envelope-stage.opening .envelope-hint{opacity:0}
+    .envelope-stage.opening .seal-crack{
+      animation:sealPop .45s ease forwards;
+    }
+    .envelope-stage.opening .paper-slip{
+      animation:paperRise .95s .25s cubic-bezier(.2,.8,.2,1) forwards;
+    }
+    .envelope-stage.opening .envelope-image{
+      animation:envelopeZoom 1.25s .1s cubic-bezier(.2,.75,.25,1) forwards;
+    }
+    @keyframes sealPop{
+      0%{opacity:0;transform:translate(-50%,-50%) scale(.5) rotate(-12deg)}
+      45%{opacity:1;transform:translate(-50%,-50%) scale(1.18) rotate(5deg)}
+      100%{opacity:0;transform:translate(-50%,-50%) scale(1.45) rotate(12deg)}
+    }
+    @keyframes paperRise{
+      0%{opacity:0;transform:translateY(80px) scale(.92)}
+      30%{opacity:1}
+      100%{opacity:1;transform:translateY(-235px) scale(1.12)}
+    }
+    @keyframes envelopeZoom{
+      0%{transform:scale(1);filter:brightness(1)}
+      70%{transform:scale(1.03);filter:brightness(1.03)}
+      100%{transform:scale(1.08);filter:brightness(1.05);opacity:.96}
+    }
+    .pulse{animation:pulse 2s ease-in-out infinite}
+    @keyframes pulse{
+      0%,100%{box-shadow:0 0 0 0 rgba(199,126,136,0)}
+      50%{box-shadow:0 0 0 8px rgba(199,126,136,.24)}
+    }
+
+    /* Letter */
+    #letterScreen{align-items:center;justify-content:center;padding:24px}
+    .letter{
+      width:min(94vw,700px);
+      max-height:88vh;
+      overflow:auto;
+      padding:36px clamp(24px,6vw,58px);
+      border-radius:12px;
+      background:
+        linear-gradient(rgba(255,255,255,.5),rgba(255,255,255,.5)),
+        repeating-linear-gradient(0deg,transparent,transparent 31px,rgba(170,132,121,.08) 32px);
+      box-shadow:var(--shadow);
+      transform:rotate(-.25deg);
+    }
+    .letter h2{font:500 clamp(1.75rem,4.8vw,2.8rem)/1.15 var(--script);margin:0 0 22px}
+    .letter p{line-height:1.72;font-size:1.04rem}
+    .letter .signoff{font:500 1.5rem/1.55 var(--script);margin-top:24px}
+    .letter-actions{text-align:center;margin-top:24px}
+
+    /* Interactive scene */
+    #wallScreen{align-items:flex-start;justify-content:center;padding:0}
+    .interactive-scene{
+      position:relative;
+      width:min(100vw,1024px);
+      aspect-ratio:1024/1536;
+      background:url("scene.png") center top / 100% 100% no-repeat;
+      margin:0 auto;
+    }
+    .birthday-heading{
+      position:absolute;
+      top:3.6%;
+      left:50%;
+      transform:translateX(-50%);
+      width:86%;
+      text-align:center;
+      font:600 clamp(1.55rem,5vw,3.5rem)/1.05 var(--script);
+      color:var(--ink);
+      text-shadow:0 2px 10px rgba(255,255,255,.9);
+      z-index:3;
+      pointer-events:none;
+    }
+    .card-hotspot{
+      position:absolute;
+      border:0;
+      background:transparent;
+      border-radius:4px;
+      padding:0;
+      transition:.18s ease;
+    }
+    .card-hotspot.unlocked:hover,
+    .card-hotspot.unlocked:focus-visible{
+      box-shadow:0 0 0 4px rgba(255,255,255,.75),0 0 0 8px rgba(199,126,136,.42);
+      transform:translateY(-2px);
+      outline:none;
+    }
+    .card-hotspot.locked{cursor:not-allowed}
+    .card-hotspot.opened::after{
+      content:"♥";
+      position:absolute;
+      right:7%;bottom:5%;
+      font:bold clamp(14px,2vw,22px) Arial;
+      color:#241a1b;
+      filter:drop-shadow(0 1px 1px rgba(255,255,255,.7));
+    }
+    .status-pill{
+      position:absolute;
+      top:15.8%;left:50%;transform:translateX(-50%);
+      padding:7px 14px;
+      border-radius:999px;
+      background:rgba(255,250,246,.76);
+      color:#654f52;
+      backdrop-filter:blur(7px);
+      box-shadow:0 8px 20px rgba(58,37,39,.12);
+      font-size:clamp(.68rem,1.5vw,.9rem);
+      white-space:nowrap;
+    }
+
+    .wall-envelope-hotspot{
+      position:absolute;
+      left:53%;
+      top:69.2%;
+      width:30%;
+      height:15.5%;
+      border:0;
+      border-radius:12px;
+      background:transparent;
+      z-index:8;
+      touch-action:manipulation;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .wall-envelope-hotspot:focus-visible{
+      outline:2px solid rgba(168,95,105,.65);
+      outline-offset:2px;
+    }
+
+    /* Scratch modal */
+    .modal{
+      position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+      background:rgba(30,19,22,.66);padding:18px;z-index:30
+    }
+    .modal.open{display:flex}
+    .modal-card{
+      width:min(94vw,640px);
+      background:var(--cream);
+      border-radius:28px 22px 30px 24px;
+      padding:24px;
+      box-shadow:var(--shadow);
+      position:relative
+    }
+    .close{position:absolute;right:16px;top:12px;border:0;background:transparent;font-size:1.5rem}
+    .modal-card h2{font:500 2.5rem var(--script);margin:0 0 12px}
+    .scratch-wrap{
+      position:relative;overflow:hidden;border-radius:20px 15px 22px 18px;
+      border:1px solid #eadbd4;background:#fff
+    }
+    .reveal{
+      min-height:280px;
+      max-height:68vh;
+      overflow-y:auto;
+      -webkit-overflow-scrolling:touch;
+      padding:30px;
+      display:flex;
+      flex-direction:column;
+      justify-content:flex-start;
+      align-items:center;
+      text-align:center;
+      background:linear-gradient(145deg,#fffdf9,#f7ebe5)
+    }
+    .reveal h3{font:500 2rem var(--script);margin:0 0 12px}
+    .reveal p{
+      max-width:46ch;
+      line-height:1.66;
+      font-size:1.05rem;
+      white-space:pre-wrap;
+      overflow-wrap:anywhere;
+      flex:0 0 auto;
+    }
+    canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+    .scratch-help{text-align:center;color:var(--muted);font-size:.88rem;margin-top:10px}
+
+    @media(max-width:650px){
+      .scene-bg{background-position:center top}
+      .access-panel{padding:24px}
+      .letter{padding:28px 22px}
+      .status-pill{top:15%}
+    }
+
+    @media (max-width: 650px){
+      html,body{
+        background:#ead2c9;
+      }
+      #wallScreen{
+        align-items:flex-start;
+        justify-content:center;
+        min-height:100vh;
+        background:#ead2c9;
+      }
+      .interactive-scene{
+        width:100vw;
+        max-width:none;
+        aspect-ratio:853/1844;
+        background-image:url("scene-mobile.png");
+        background-position:center top;
+        background-size:100% 100%;
+        background-repeat:no-repeat;
+        margin:0;
+      }
+      .birthday-heading{
+        top:6.5%;
+        width:92%;
+        font-size:clamp(1.55rem,7vw,2.3rem);
+        line-height:1.05;
+      }
+      .status-pill{
+        top:auto !important;
+        bottom:4%;
+        font-size:clamp(.72rem,3vw,.9rem);
+        padding:6px 12px;
+      }
+      .wall-envelope-hotspot{
+        left:50.5%;
+        top:61.5%;
+        width:29%;
+        height:11.5%;
+      }
+      .modal{
+        align-items:flex-start;
+        overflow-y:auto;
+        -webkit-overflow-scrolling:touch;
+        padding:8px;
+      }
+      .modal-card{
+        width:100%;
+        margin:8px auto;
+        padding:20px 16px;
+        border-radius:20px;
+      }
+      .scratch-wrap{
+        max-height:72dvh;
+      }
+      .reveal{
+        min-height:300px;
+        max-height:72dvh;
+        overflow-y:auto;
+        -webkit-overflow-scrolling:touch;
+        padding:24px 18px 32px;
+        justify-content:flex-start;
+      }
+      .reveal h3{
+        font-size:1.65rem;
+        flex:0 0 auto;
+      }
+      .reveal p{
+        width:100%;
+        max-width:none;
+        font-size:1rem;
+        line-height:1.7;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="scene-bg"></div>
+  <div class="soft-wash"></div>
+
+  <section id="accessScreen" class="screen active">
+    <div class="access-panel">
+      <div class="kicker">Private invitation</div>
+      <h1>Something special is waiting.</h1>
+      <p>Enter your access code to begin.</p>
+      <form id="accessForm" class="code-row" novalidate>
+        <input
+          id="accessCode"
+          name="accessCode"
+          type="text"
+          placeholder="Enter access code"
+          aria-label="Access code"
+          autocomplete="off"
+          autocapitalize="characters"
+          autocorrect="off"
+          spellcheck="false"
+          enterkeyhint="go"
+        >
+        <button id="enterBtn" class="primary" type="button">Enter</button>
+      </form>
+      <div id="codeMessage" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section id="envelopeScreen" class="screen">
+    <div class="envelope-stage">
+      <img class="envelope-image" src="envelope_scene.png" alt="Envelope for Chanel">
+      <div class="seal-crack" aria-hidden="true">♡</div>
+      <div class="paper-slip" aria-hidden="true"></div>
+      <button id="envelopeButton" class="envelope-hotspot pulse" aria-label="Open the envelope for Chanel"></button>
+      <div class="envelope-hint">Tap the envelope</div>
+    </div>
+  </section>
+
+  <section id="letterScreen" class="screen">
+    <article class="letter">
+      <div class="kicker">30 Before 30</div>
+      <h2>Happy Birthday, my dearest sister!</h2>
+
+      <p>Welcome to your <strong>30 Before 30 adventure!</strong></p>
+
+      <p>Over the next little while you'll unlock 30 surprises, some big, some small, some practical, some just because I love you.</p>
+
+      <p>Each time a new card becomes available, I'll let you know. Then all you have to do is scratch it to discover what awaits you.</p>
+
+      <p>I hope these little moments remind you just how deeply you're loved and celebrated.</p>
+
+      <p>Now... enough reading.</p>
+
+      <p><strong>Go scratch Card #1. Your first surprise is waiting!</strong></p>
+
+      <div class="signoff">I love you<br>Es</div>
+
+      <div class="letter-actions">
+        <button id="beginBtn" class="primary">Back to the cards</button>
+      </div>
+    </article>
+  </section>
+
+  <section id="wallScreen" class="screen">
+    <div class="interactive-scene">
+      <div class="birthday-heading">Happy Birthday, Chanel!</div>
+      <div id="status" class="status-pill"></div>
+      <button id="wallEnvelopeButton" class="wall-envelope-hotspot" aria-label="Open Chanel's letter"></button>
+      <div id="hotspots"></div>
+    </div>
+  </section>
+
+  <div id="scratchModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-card">
+      <button id="closeModal" class="close" aria-label="Close">×</button>
+      <div class="kicker">Your surprise</div>
+      <h2 id="modalTitle">Card 1</h2>
+      <div class="scratch-wrap">
+        <div class="reveal">
+          <h3>A little birthday surprise is waiting… 🌸</h3>
+          <p>
+            The room named after something found in a spice rack holds today’s surprise.
+            Head to the place where bubbles, shampoo and hot showers live…
+            something beautiful is waiting there.
+          </p>
+          <p><strong>Happy Birthday! I wish I could celebrate this day with you.</strong></p>
+        </div>
+        <canvas id="scratchCanvas"></canvas>
+      </div>
+      <div class="scratch-help">Use your finger or mouse to scratch the card.</div>
+    </div>
+  </div>
+
+  <script>
+    const ACCESS_CODE = "CHANEL30";
+    const screens = {
+      access: document.getElementById("accessScreen"),
+      envelope: document.getElementById("envelopeScreen"),
+      letter: document.getElementById("letterScreen"),
+      wall: document.getElementById("wallScreen")
+    };
+    function show(name){
+      Object.values(screens).forEach(s=>s.classList.remove("active"));
+      screens[name].classList.add("active");
+    }
+
+    const codeInput = document.getElementById("accessCode");
+    const codeMessage = document.getElementById("codeMessage");
+    function enter(){
+      if(codeInput.value.trim().toUpperCase() === ACCESS_CODE){
+        codeMessage.textContent = "";
+        show("wall");
+      } else {
+        codeMessage.textContent = "That code doesn’t seem quite right. Try again.";
+      }
+    }
+    const accessForm = document.getElementById("accessForm");
+    const enterButton = document.getElementById("enterBtn");
+
+    enterButton.addEventListener("click", () => {
+      codeInput.blur();
+      enter();
+    });
+
+    accessForm.addEventListener("submit", e => {
+      e.preventDefault();
+      codeInput.blur();
+      enter();
+    });
+
+    codeInput.addEventListener("keyup", e => {
+      if(e.key === "Enter"){
+        e.preventDefault();
+        codeInput.blur();
+        enter();
+      }
+    });
+    document.getElementById("envelopeButton").addEventListener("click",()=>{
+      const stage = document.querySelector(".envelope-stage");
+      if(stage.classList.contains("opening")) return;
+      stage.classList.add("opening");
+      document.getElementById("envelopeButton").disabled = true;
+      setTimeout(()=>show("letter"), 1450);
+    });
+    document.getElementById("beginBtn").addEventListener("click",()=>show("wall"));
+    document.getElementById("wallEnvelopeButton").addEventListener("click",()=>show("letter"));
+
+    // Paste your published Google Sheet CSV link between the quotation marks.
+    // Leave blank until the sheet is ready; Card 1 will still work.
+    const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRkgw7DDNKwL_MkbWqYxMRxc8TIvJUKKa2NAB09ZkjKQljxT-_haVTlAfq-Hu7c8iw90VsQhSZdJj88/pub?output=csv";
+
+    let CARD_DATA = [{"number": 1, "unlocked": true, "title": "Card 1", "heading": "A little birthday surprise is waiting… 🌸", "message": "The room named after something found in a spice rack holds today’s surprise. Head to the place where bubbles, shampoo and hot showers live… something beautiful is waiting there.", "closing": "Happy Birthday! I wish I could celebrate this day with you."}, {"number": 2, "unlocked": false, "title": "Card 2", "heading": "", "message": "", "closing": ""}, {"number": 3, "unlocked": false, "title": "Card 3", "heading": "", "message": "", "closing": ""}, {"number": 4, "unlocked": false, "title": "Card 4", "heading": "", "message": "", "closing": ""}, {"number": 5, "unlocked": false, "title": "Card 5", "heading": "", "message": "", "closing": ""}, {"number": 6, "unlocked": false, "title": "Card 6", "heading": "", "message": "", "closing": ""}, {"number": 7, "unlocked": false, "title": "Card 7", "heading": "", "message": "", "closing": ""}, {"number": 8, "unlocked": false, "title": "Card 8", "heading": "", "message": "", "closing": ""}, {"number": 9, "unlocked": false, "title": "Card 9", "heading": "", "message": "", "closing": ""}, {"number": 10, "unlocked": false, "title": "Card 10", "heading": "", "message": "", "closing": ""}, {"number": 11, "unlocked": false, "title": "Card 11", "heading": "", "message": "", "closing": ""}, {"number": 12, "unlocked": false, "title": "Card 12", "heading": "", "message": "", "closing": ""}, {"number": 13, "unlocked": false, "title": "Card 13", "heading": "", "message": "", "closing": ""}, {"number": 14, "unlocked": false, "title": "Card 14", "heading": "", "message": "", "closing": ""}, {"number": 15, "unlocked": false, "title": "Card 15", "heading": "", "message": "", "closing": ""}, {"number": 16, "unlocked": false, "title": "Card 16", "heading": "", "message": "", "closing": ""}, {"number": 17, "unlocked": false, "title": "Card 17", "heading": "", "message": "", "closing": ""}, {"number": 18, "unlocked": false, "title": "Card 18", "heading": "", "message": "", "closing": ""}, {"number": 19, "unlocked": false, "title": "Card 19", "heading": "", "message": "", "closing": ""}, {"number": 20, "unlocked": false, "title": "Card 20", "heading": "", "message": "", "closing": ""}, {"number": 21, "unlocked": false, "title": "Card 21", "heading": "", "message": "", "closing": ""}, {"number": 22, "unlocked": false, "title": "Card 22", "heading": "", "message": "", "closing": ""}, {"number": 23, "unlocked": false, "title": "Card 23", "heading": "", "message": "", "closing": ""}, {"number": 24, "unlocked": false, "title": "Card 24", "heading": "", "message": "", "closing": ""}, {"number": 25, "unlocked": false, "title": "Card 25", "heading": "", "message": "", "closing": ""}, {"number": 26, "unlocked": false, "title": "Card 26", "heading": "", "message": "", "closing": ""}, {"number": 27, "unlocked": false, "title": "Card 27", "heading": "", "message": "", "closing": ""}, {"number": 28, "unlocked": false, "title": "Card 28", "heading": "", "message": "", "closing": ""}, {"number": 29, "unlocked": false, "title": "Card 29", "heading": "", "message": "", "closing": ""}, {"number": 30, "unlocked": false, "title": "Card 30", "heading": "", "message": "", "closing": ""}];
+    let unlocked = new Set(
+      CARD_DATA.filter(card => card.unlocked).map(card => card.number)
+    );
+    let openedCards = new Set();
+    let currentCard = null;
+
+    function parseCSV(text){
+      const rows = [];
+      let row = [], value = "", quoted = false;
+      for(let i=0;i<text.length;i++){
+        const c = text[i], next = text[i+1];
+        if(c === '"' && quoted && next === '"'){ value += '"'; i++; }
+        else if(c === '"') quoted = !quoted;
+        else if(c === ',' && !quoted){ row.push(value); value = ""; }
+        else if((c === "\n" || c === "\r") && !quoted){
+          if(c === "\r" && next === "\n") i++;
+          row.push(value); value = "";
+          if(row.some(cell => cell.trim() !== "")) rows.push(row);
+          row = [];
+        } else value += c;
+      }
+      if(value.length || row.length){ row.push(value); rows.push(row); }
+      return rows;
+    }
+
+    async function loadCardsFromSheet(){
+      if(!GOOGLE_SHEET_CSV_URL) return;
+      try{
+        const separator = GOOGLE_SHEET_CSV_URL.includes("?") ? "&" : "?";
+        const response = await fetch(GOOGLE_SHEET_CSV_URL + separator + "t=" + Date.now(), {cache:"no-store"});
+        if(!response.ok) throw new Error("Sheet could not be loaded");
+        const rows = parseCSV(await response.text());
+        const headers = rows.shift().map(h => h.trim().toLowerCase());
+        const idx = name => headers.indexOf(name);
+        const parsed = rows.map(row => ({
+          number: Number(row[idx("number")]),
+          unlocked: String(row[idx("unlocked")]).trim().toLowerCase() === "true",
+          title: row[idx("title")] || "",
+          heading: row[idx("heading")] || "",
+          message: row[idx("message")] || "",
+          closing: row[idx("closing")] || ""
+        })).filter(card => Number.isFinite(card.number));
+        if(parsed.length){
+          CARD_DATA = parsed;
+          unlocked = new Set(CARD_DATA.filter(card => card.unlocked).map(card => card.number));
+          renderHotspots();
+        }
+      }catch(error){
+        console.warn("Using built-in Card 1 because the Google Sheet was unavailable.", error);
+      }
+    }
+
+    // Separate clickable-card positions for desktop and phone artwork.
+    const desktopLayout = {
+      x: [23.0,35.1,47.3,59.4,71.6],
+      y: [17.3,25.8,34.3,42.8,51.3,59.8],
+      w: 10.0,
+      h: 7.2
+    };
+
+    const mobileLayout = {
+      x: [19.4,28.7,38.0,47.3,56.6],
+      y: [26.5,32.3,38.1,43.9,49.7,55.5],
+      w: 8.1,
+      h: 5.1
+    };
+
+    function currentLayout(){
+      return window.matchMedia("(max-width: 650px)").matches
+        ? mobileLayout
+        : desktopLayout;
+    }
+
+    const hotspots = document.getElementById("hotspots");
+    function renderHotspots(){
+      hotspots.innerHTML = "";
+      const layout = currentLayout();
+      let number = 1;
+      for(let row=0; row<6; row++){
+        for(let col=0; col<5; col++){
+          const n = number++;
+          const b = document.createElement("button");
+          b.className = "card-hotspot " + (unlocked.has(n) ? "unlocked" : "locked");
+          if(openedCards.has(n)) b.classList.add("opened");
+          b.style.left = layout.x[col] + "%";
+          b.style.top = layout.y[row] + "%";
+          b.style.width = layout.w + "%";
+          b.style.height = layout.h + "%";
+          b.disabled = !unlocked.has(n);
+          b.setAttribute("aria-label", unlocked.has(n) ? `Open card ${n}` : `Card ${n} is locked`);
+          b.addEventListener("click",()=>openCard(n));
+          hotspots.appendChild(b);
+        }
+      }
+      document.getElementById("status").textContent =
+        `${unlocked.size} / 30 adventures`;
+    }
+
+    const modal = document.getElementById("scratchModal");
+    const canvas = document.getElementById("scratchCanvas");
+    const ctx = canvas.getContext("2d");
+    let scratching = false;
+
+    function openCard(n){
+      const card = CARD_DATA.find(item => item.number === n);
+      if(!card || !card.unlocked) return;
+
+      currentCard = n;
+      document.getElementById("modalTitle").textContent = card.title || `Card ${n}`;
+      document.querySelector(".reveal h3").textContent = card.heading || "A little surprise is waiting…";
+      document.querySelector(".reveal").querySelectorAll("p")[0].textContent = card.message || "Your surprise will appear here.";
+      document.querySelector(".reveal").querySelectorAll("p")[1].innerHTML =
+        `<strong>${card.closing || ""}</strong>`;
+
+      modal.classList.add("open");
+      requestAnimationFrame(setupScratch);
+    }
+    function closeModal(){
+      modal.classList.remove("open");
+      if(openedCards.size) renderHotspots();
+    }
+    document.getElementById("closeModal").addEventListener("click",closeModal);
+    modal.addEventListener("click",e=>{if(e.target===modal)closeModal()});
+
+    function setupScratch(){
+      canvas.style.opacity="1";
+      canvas.style.pointerEvents="auto";
+      const rect=canvas.parentElement.getBoundingClientRect();
+      const dpr=Math.max(1,window.devicePixelRatio||1);
+      canvas.width=rect.width*dpr;
+      canvas.height=rect.height*dpr;
+      canvas.style.width=rect.width+"px";
+      canvas.style.height=rect.height+"px";
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      ctx.globalCompositeOperation="source-over";
+
+      const g=ctx.createLinearGradient(0,0,rect.width,rect.height);
+      g.addColorStop(0,"#b56f78");
+      g.addColorStop(.5,"#dfa9a8");
+      g.addColorStop(1,"#9e5964");
+      ctx.fillStyle=g;
+      ctx.fillRect(0,0,rect.width,rect.height);
+
+      for(let i=0;i<75;i++){
+        ctx.fillStyle=`rgba(255,255,255,${0.08+Math.random()*.18})`;
+        ctx.beginPath();
+        ctx.arc(Math.random()*rect.width,Math.random()*rect.height,Math.random()*2.2,0,Math.PI*2);
+        ctx.fill();
+      }
+
+      ctx.fillStyle="rgba(255,255,255,.96)";
+      ctx.textAlign="center";
+      ctx.textBaseline="middle";
+      ctx.font="700 20px system-ui";
+      ctx.fillText("SCRATCH TO REVEAL",rect.width/2,rect.height/2);
+      ctx.globalCompositeOperation="destination-out";
+    }
+
+    function point(e){
+      const r=canvas.getBoundingClientRect();
+      const t=e.touches?e.touches[0]:e;
+      return{x:t.clientX-r.left,y:t.clientY-r.top};
+    }
+    function scratch(e){
+      if(!scratching)return;
+      e.preventDefault();
+      const p=point(e);
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,24,0,Math.PI*2);
+      ctx.fill();
+      checkProgress();
+    }
+    function checkProgress(){
+      const pixels=ctx.getImageData(0,0,canvas.width,canvas.height).data;
+      let clear=0,total=0;
+      for(let i=3;i<pixels.length;i+=32){
+        total++;
+        if(pixels[i]<35)clear++;
+      }
+      if(clear/total>.38){
+        if(currentCard!==null) openedCards.add(currentCard);
+        canvas.style.transition="opacity .55s";
+        canvas.style.opacity="0";
+        setTimeout(()=>canvas.style.pointerEvents="none",560);
+      }
+    }
+
+    ["mousedown","touchstart"].forEach(ev=>canvas.addEventListener(ev,e=>{scratching=true;scratch(e)},{passive:false}));
+    ["mousemove","touchmove"].forEach(ev=>canvas.addEventListener(ev,scratch,{passive:false}));
+    ["mouseup","mouseleave","touchend","touchcancel"].forEach(ev=>canvas.addEventListener(ev,()=>scratching=false));
+
+    window.addEventListener("resize", renderHotspots);
+    renderHotspots();
+    loadCardsFromSheet();
+  </script>
+</body>
+</html>

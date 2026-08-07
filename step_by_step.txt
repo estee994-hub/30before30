@@ -1,0 +1,42 @@
+STEP-BY-STEP: PUBLISH NOW AND ADD CARDS LATER
+
+CURRENT SETUP
+- Access code: CHANEL30
+- Only Card 1 is unlocked.
+- Cards 2–30 are locked and may remain empty.
+- Progress text reads: 1 / 30 adventures.
+
+BEFORE PUBLISHING
+1. Open index.html on your computer.
+2. Enter CHANEL30.
+3. Check the envelope, letter, wall and Card 1.
+4. Test the scratch card.
+
+PUBLISH FREE ON NETLIFY
+1. Unzip the downloaded website ZIP.
+2. Keep every file together inside one folder.
+3. Sign in to Netlify.
+4. Open Netlify Drop / manual deploy.
+5. Drag the UNZIPPED FOLDER onto the upload area.
+6. Wait for the netlify.app link.
+7. Open that public link on your iPhone.
+8. Test the password and Card 1 before sending the link.
+
+ADD OR UNLOCK A CARD LATER
+1. Keep the original website folder safely on your computer.
+2. Open card-data.js with a plain-text editor.
+3. Find the relevant card number.
+4. Add its heading, message and closing.
+5. Change "unlocked": false to "unlocked": true.
+6. Save card-data.js.
+7. In index.html, change card-data.js?v=1 to card-data.js?v=2.
+   On the next update, change v=2 to v=3, and so on.
+   This helps iPhones load the newest card information instead of an older cached copy.
+8. Log in to the SAME Netlify site.
+9. Open its Deploys page / manual deploy area.
+10. Drag the complete updated folder into the deployment area.
+11. The same public link will show the new version.
+12. Test it on your own phone before telling Chanel the next card is available.
+
+IMPORTANT
+Do not create a new Netlify site every day. Update the existing site so the link stays the same.
