@@ -234,13 +234,17 @@
       outline:none;
     }
     .card-hotspot.locked{cursor:not-allowed}
-    .card-hotspot.opened::after{
-      content:"♥";
+    .card-hotspot.unlocked::after{
+      content:"♡";
       position:absolute;
-      right:7%;bottom:5%;
-      font:bold clamp(14px,2vw,22px) Arial;
+      right:6%;bottom:4%;
+      font:bold clamp(15px,2.2vw,23px) Arial;
       color:#241a1b;
-      filter:drop-shadow(0 1px 1px rgba(255,255,255,.7));
+      filter:drop-shadow(0 1px 1px rgba(255,255,255,.75));
+      pointer-events:none;
+    }
+    .card-hotspot.unlocked.opened::after{
+      content:"♥";
     }
     .status-pill{
       position:absolute;
@@ -554,8 +558,23 @@
     let unlocked = new Set(
       CARD_DATA.filter(card => card.unlocked).map(card => card.number)
     );
+    const OPENED_STORAGE_KEY = "chanel30_opened_cards_v1";
     let openedCards = new Set();
+    try {
+      const savedOpened = JSON.parse(localStorage.getItem(OPENED_STORAGE_KEY) || "[]");
+      if(Array.isArray(savedOpened)) openedCards = new Set(savedOpened.map(Number));
+    } catch(error) {
+      console.warn("Could not restore opened-card progress.", error);
+    }
     let currentCard = null;
+
+    function saveOpenedCards(){
+      try {
+        localStorage.setItem(OPENED_STORAGE_KEY, JSON.stringify([...openedCards]));
+      } catch(error) {
+        console.warn("Could not save opened-card progress.", error);
+      }
+    }
 
     function parseCSV(text){
       const rows = [];
@@ -612,10 +631,10 @@
     };
 
     const mobileLayout = {
-      x: [19.4,28.7,38.0,47.3,56.6],
-      y: [26.5,32.3,38.1,43.9,49.7,55.5],
-      w: 8.1,
-      h: 5.1
+      x: [23.1,34.2,45.4,56.5,67.6],
+      y: [25.8,31.5,37.3,43.0,48.8,54.5],
+      w: 9.2,
+      h: 5.0
     };
 
     function currentLayout(){
@@ -731,7 +750,10 @@
         if(pixels[i]<35)clear++;
       }
       if(clear/total>.38){
-        if(currentCard!==null) openedCards.add(currentCard);
+        if(currentCard!==null){
+          openedCards.add(currentCard);
+          saveOpenedCards();
+        }
         canvas.style.transition="opacity .55s";
         canvas.style.opacity="0";
         setTimeout(()=>canvas.style.pointerEvents="none",560);
